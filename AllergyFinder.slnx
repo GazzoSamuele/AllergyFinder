@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/AllergyFinder.Api/AllergyFinder.Api.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AllergyFinder.Tests/AllergyFinder.Tests.csproj" />
+  </Folder>
+</Solution>
