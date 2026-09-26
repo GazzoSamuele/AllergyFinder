@@ -6,6 +6,9 @@ namespace AllergyFinder.Api.Data;
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options)
 {
     public DbSet<Allergen> Allergens => Set<Allergen>();
+    public DbSet<Restaurant> Restaurants => Set<Restaurant>();
+    public DbSet<Dish> Dishes => Set<Dish>();
+    public DbSet<DishAllergen> DishAllergens => Set<DishAllergen>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -60,6 +63,42 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 
 
             );
+        });
+
+        modelBuilder.Entity<Restaurant>(entity =>
+{
+    entity.Property(r => r.Name).HasMaxLength(150);
+    entity.Property(r => r.City).HasMaxLength(100);
+    entity.Property(r => r.CuisineType).HasMaxLength(50);
+    entity.ToTable(t => t.HasCheckConstraint(
+        "ck_restaurants_price_level", "price_level BETWEEN 1 AND 3"));
+
+    entity.HasMany(r => r.Dishes)
+        .WithOne(d => d.Restaurant)
+        .HasForeignKey(d => d.RestaurantId)
+        .OnDelete(DeleteBehavior.Cascade);
+});
+
+        modelBuilder.Entity<Dish>(entity =>
+        {
+            entity.Property(d => d.Name).HasMaxLength(150);
+            entity.Property(d => d.Price).HasPrecision(8, 2);
+        });
+
+        modelBuilder.Entity<DishAllergen>(entity =>
+        {
+            entity.HasKey(da => new { da.DishId, da.AllergenId });
+            entity.Property(da => da.Presence).HasConversion<string>().HasMaxLength(20);
+
+            entity.HasOne(da => da.Dish)
+                .WithMany(d => d.Allergens)
+                .HasForeignKey(da => da.DishId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(da => da.Allergen)
+                .WithMany()
+                .HasForeignKey(da => da.AllergenId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }
