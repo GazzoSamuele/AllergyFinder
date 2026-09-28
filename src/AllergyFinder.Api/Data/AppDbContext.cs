@@ -9,6 +9,8 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
     public DbSet<Restaurant> Restaurants => Set<Restaurant>();
     public DbSet<Dish> Dishes => Set<Dish>();
     public DbSet<DishAllergen> DishAllergens => Set<DishAllergen>();
+    public DbSet<User> Users => Set<User>();
+    public DbSet<UserNeed> UserNeeds => Set<UserNeed>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -98,6 +100,28 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
             entity.HasOne(da => da.Allergen)
                 .WithMany()
                 .HasForeignKey(da => da.AllergenId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(us => us.Name).HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<UserNeed>(entity =>
+        {
+            entity.HasKey(us => new { us.UserId, us.AllergenId });
+            entity.Property(us => us.Type).HasConversion<string>().HasMaxLength(20);
+
+            entity.HasOne(us => us.User)
+                .WithMany(u => u.Needs)
+                .HasForeignKey(us => us.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+
+            entity.HasOne(us => us.Allergen)
+                .WithMany()
+                .HasForeignKey(us => us.AllergenId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
     }

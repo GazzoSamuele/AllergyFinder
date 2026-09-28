@@ -7,6 +7,11 @@ public static class DevDataSeeder
 {
     public static async Task SeedAsync(AppDbContext db)
     {
+        await SeedRestaurantsAsync(db);
+        await SeedUsersAsync(db);
+    }
+    private static async Task SeedRestaurantsAsync(AppDbContext db)
+    {
         if (await db.Restaurants.AnyAsync())
         {
             return;
@@ -107,6 +112,7 @@ public static class DevDataSeeder
                 }
             ]
         };
+
         var sushiPo = new Restaurant
         {
             Name = "Sushi Po",
@@ -198,10 +204,11 @@ public static class DevDataSeeder
                 }
             ]
         };
+
         var osteriaSanSalvario = new Restaurant
         {
             Name = "Osteria San Salvario",
-            City = "San Salvario",
+            City = "Torino",
             CuisineType = "Mediterranea",
             PriceLevel = 2,
             Dishes = [
@@ -275,6 +282,60 @@ public static class DevDataSeeder
         };
 
         db.Restaurants.AddRange(trattoria, senzaGlutineBistrot, sushiPo, pizzeriaMole, osteriaSanSalvario, greenKitchen);
+        await db.SaveChangesAsync();
+    }
+
+    private static async Task SeedUsersAsync(AppDbContext db)
+    {
+        if (await db.Users.AnyAsync())
+        {
+            return;
+        }
+
+        var allergens = await db.Allergens.ToDictionaryAsync(a => a.Code);
+
+        var samuele = new User
+        {
+            Name = "Samuele",
+            Needs =
+            [
+                new UserNeed { Allergen = allergens["GLUTEN"], Type = NeedType.Allergy },
+                new UserNeed { Allergen = allergens["MILK"], Type = NeedType.Intolerance },
+            ]
+        };
+
+        var fabio = new User
+        {
+            Name = "Fabio",
+            Needs =
+            [
+                new UserNeed { Allergen = allergens["CRUSTACEANS"], Type = NeedType.Allergy },
+                new UserNeed { Allergen = allergens["MILK"], Type = NeedType.Preference },
+            ]
+        };
+
+        var anna = new User
+        {
+            Name = "Anna",
+            Needs =
+            [
+                new UserNeed { Allergen = allergens["EGGS"], Type = NeedType.Allergy },
+                new UserNeed { Allergen = allergens["SOY"], Type = NeedType.Intolerance },
+            ]
+        };
+
+        var elena = new User
+        {
+            Name = "Elena",
+            Needs =
+            [
+                new UserNeed { Allergen = allergens["PEANUTS"], Type = NeedType.Allergy },
+                new UserNeed { Allergen = allergens["TREE_NUTS"], Type = NeedType.Intolerance },
+                new UserNeed { Allergen = allergens["CELERY"], Type = NeedType.Allergy },
+            ]
+        };
+
+        db.Users.AddRange(samuele, fabio, anna, elena);
         await db.SaveChangesAsync();
     }
 }
