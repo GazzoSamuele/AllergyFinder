@@ -1,6 +1,7 @@
 using AllergyFinder.Api.Data;
 using AllergyFinder.Api.Dtos;
 using AllergyFinder.Api.Models;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using AllergyFinder.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -93,9 +94,8 @@ public class RestaurantsController(AppDbContext db, CompatibilityService compati
     }
 
     [HttpGet("compatible")]
-    public async Task<ActionResult<List<CompatibleRestaurantDto>>> GetCompatible(int userId)
+    public async Task<ActionResult<List<CompatibleRestaurantDto>>> GetCompatible([BindRequired] int userId)
     {
-        // 1. L'utente con le sue esigenze
         var user = await db.Users
             .AsNoTracking()
             .Include(u => u.Needs)
@@ -106,7 +106,6 @@ public class RestaurantsController(AppDbContext db, CompatibilityService compati
             return NotFound();
         }
 
-        // 2. I ristoranti con piatti, allergeni dei piatti e nome di ogni allergene
         var restaurants = await db.Restaurants
             .AsNoTracking()
             .Include(r => r.Dishes)
@@ -117,7 +116,6 @@ public class RestaurantsController(AppDbContext db, CompatibilityService compati
         var now = DateTime.UtcNow;
         var response = new List<CompatibleRestaurantDto>();
 
-        // 3. Per ogni ristorante: valuta i piatti e conta gli stati
         foreach (var restaurant in restaurants)
         {
             var results = restaurant.Dishes
@@ -149,7 +147,7 @@ public class RestaurantsController(AppDbContext db, CompatibilityService compati
     }
 
     [HttpGet("{id:int}/compatibility")]
-    public async Task<ActionResult<RestaurantCompatibilityDto>> GetCompatibility(int id, int userId)
+    public async Task<ActionResult<RestaurantCompatibilityDto>> GetCompatibility(int id, [BindRequired] int userId)
     {
         var user = await db.Users
             .AsNoTracking()
